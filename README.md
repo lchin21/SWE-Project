@@ -1,1 +1,1 @@
-# SWE-Project
+UI library: mantine.dev
