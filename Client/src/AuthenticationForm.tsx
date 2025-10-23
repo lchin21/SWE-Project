@@ -39,6 +39,16 @@ export function AuthenticationForm(props: PaperProps) {
   };
 
   return (
+    <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          width: "100vw",
+          backgroundColor: "#404040ff"
+        }}
+    >
     <Paper radius="md" p="lg" withBorder {...props}>
       <Text size="lg" fw={500}>
         Welcome to MyMacroPlan, {type} with
@@ -104,5 +114,6 @@ export function AuthenticationForm(props: PaperProps) {
         </Group>
       </form>
     </Paper>
+    </div>
   );
 }
