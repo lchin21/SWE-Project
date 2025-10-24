@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "react-router-dom": "^7.1.1",
     "@mantine/core": "^8.3.1",
     "@mantine/form": "^8.3.1",
     "@mantine/hooks": "^8.3.1",
+    "firebase": "^12.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
