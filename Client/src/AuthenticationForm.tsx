@@ -14,8 +14,10 @@ import {
 import { useForm } from "@mantine/form";
 import { upperFirst, useToggle } from "@mantine/hooks";
 import { GoogleButton } from "./GoogleButton";
+import { useNavigate } from "react-router-dom";
 
 export function AuthenticationForm(props: PaperProps) {
+  const navigate = useNavigate();
   const [type, toggle] = useToggle(['login', 'register']);
   const form = useForm({
     initialValues: {
@@ -32,10 +34,20 @@ export function AuthenticationForm(props: PaperProps) {
   });
 
   const loginEmail = async () => {
-    // CHANGE THIS TO ENV WHEN IMPLEMENTED
-    const res = await fetch("http://localhost:3000/click", { method: "POST" });
-    const data = await res.text();
-    // Then redirect to home page on success
+    try {
+      const res = await fetch("http://localhost:3000/click", { method: "POST" });
+      const data = await res.text();
+      if (res.ok) {
+        navigate("/home");
+        return;
+      }
+      console.error("Login failed:", data);
+      // Temporary to allow navigation without a backend:
+      navigate("/home");
+    } catch (err: any) {
+      console.error("Login error:", err?.message || err);
+      navigate("/home");
+    }
   };
 
   return (
@@ -60,7 +72,7 @@ export function AuthenticationForm(props: PaperProps) {
 
       <Divider label="Or continue with email" labelPosition="center" my="lg" />
 
-      <form onSubmit={form.onSubmit(() => {})}>
+      <form onSubmit={form.onSubmit(loginEmail)}>
         <Stack>
           {type === 'register' && (
             <TextInput
@@ -108,7 +120,7 @@ export function AuthenticationForm(props: PaperProps) {
               : "Don't have an account? Register"}
           </Anchor>
 
-          <Button onClick={loginEmail} type="submit" radius="xl">
+          <Button type="submit" radius="xl">
             {upperFirst(type)}
           </Button>
         </Group>

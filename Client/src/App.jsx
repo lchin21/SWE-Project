@@ -2,16 +2,18 @@ import "@mantine/core/styles.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MantineProvider } from "@mantine/core";
 import { theme } from "./theme.js";
-import { AuthenticationForm } from "./AuthenticationForm.js";
+import { AuthenticationForm } from "./AuthenticationForm";
+import HomePage from "./HomePage";
 
 export default function App() {
   return (
-    <MantineProvider theme={theme}>
         <BrowserRouter>
+      <MantineProvider theme={theme}>
         <Routes>
           <Route path="/" element={<AuthenticationForm />} />
+          <Route path="/home" element={<HomePage />} />
         </Routes>
-      </BrowserRouter>
-    </MantineProvider>
+      </MantineProvider>
+    </BrowserRouter>
   );
 }
