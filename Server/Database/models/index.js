@@ -2,11 +2,9 @@ import {readdirSync} from "fs";
 import {basename, dirname} from "path";
 import {DataTypes, Sequelize} from "sequelize";
 import {fileURLToPath} from 'url';
-import dbConfig from "../config.js";
-
-const env = process.env.NODE_ENV || 'development';
-
-const config = dbConfig[env]
+import getConfig from "../config.js";
+import dotenv from "dotenv"
+dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,22 +12,14 @@ const __dirname = dirname(__filename);
 const db = {};
 let sequelize
 
-// different environments, may not be necessary. May remove later
-if (process.env.MYSQL_URL) {
-    sequelize = new Sequelize(process.env.MYSQL_DATABASE, process.env.MYSQLUSER, process.env.MYSQLPASSWORD, {
-        host: process.env.MYSQLHOST,
-        dialect: config.dialect,
-        logging: false,
-    });
-} else {
-    console.log("dev env")
-    sequelize = new Sequelize(config.database, config.username, config.password, {
-        host: process.env.MYSQLHOST,
-        dialect: config.dialect,
-        port: process.env.MYSQLPORT,
-        logging: false,
-    });
-}
+const config = getConfig()
+
+sequelize = new Sequelize(config.database, config.username, config.password, {
+    host: config.host,
+    dialect: config.dialect,
+    port: config.port,
+    logging: false,
+});
 
 const files = readdirSync(__dirname)
     .filter(
