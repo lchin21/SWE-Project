@@ -37,7 +37,7 @@ export const signOutUser = async () => {
     });
 }
 
-export const googleLogIn = async (embedded, navigate) => {
+export const googleLogIn = async () => {
     const provider = new GoogleAuthProvider();
 
     signInWithPopup(auth, provider)
