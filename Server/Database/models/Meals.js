@@ -11,6 +11,11 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            defaultValue: "",
+        },
         calories: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -32,6 +37,16 @@ export default (sequelize, DataTypes) => {
             defaultValue: 0
         }
     })
+
+    Meals.associate = (models) => {
+        Meals.hasMany(models.PlannedMeals, {
+            foreignKey: "mealID",
+            as: "plannedMeals",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+            hooks: true,
+        });
+    };
 
     return Meals;
 }

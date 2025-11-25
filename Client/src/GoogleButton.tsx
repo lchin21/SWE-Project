@@ -1,4 +1,6 @@
 import { Button, ButtonProps } from '@mantine/core';
+import { googleLogIn } from './firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -30,12 +32,14 @@ function GoogleIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 }
 
 export function GoogleButton(props: ButtonProps & React.ComponentPropsWithoutRef<'button'>) {
+  const navigate = useNavigate();
   const loginGoogle = async () => {
-    // CHANGE THIS TO ENV WHEN IMPLEMENTED
-    const res = await fetch("http://localhost:3000/click", { method: "POST" });
-    const data = await res.text();
-    // Then redirect to home page on success
+    try {
+      const token = await googleLogIn();
+      if (token) navigate('/home');
+    } catch (e) {
+      console.error('Google login failed', e);
+    }
   };
-
   return <Button onClick={loginGoogle} leftSection={<GoogleIcon />} variant="default" {...props} />;
 }

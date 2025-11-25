@@ -23,19 +23,31 @@ import mealsRouter from "./Routes/meals.js"
 app.use("/api/v1/meals", mealsRouter);
 
 import goalsRouter from "./Routes/goals.js"
-app.use("/api/v1/meals", goalsRouter);
+// Correctly mount goals router (was mistakenly on /api/v1/meals)
+app.use("/api/v1/goals", goalsRouter);
+
+// Mount plans router (previously missing)
+import plansRouter from "./Routes/plans.js"
+app.use("/api/v1/plans", plansRouter);
 
 // Only need to implement if hosting actual site w/o vercel or something similar.
 // app.all("*", (req, res) => {
 //   res.sendFile(path.join(__dirname, "index.html"));
 // });
 
-db.sequelize.sync()
-  .then(() => {
+const startServer = async () => {
+  try {
+    const qi = db.sequelize.getQueryInterface();
+    await qi.removeConstraint('Meals', 'meals_ibfk_1').catch(() => {});
+
+    await db.sequelize.sync({ alter: true });
+
     app.listen(port, "0.0.0.0", () => {
       console.log(`Server is running on port ${port}`);
     });
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error("Failed to sync DB or start server:", err);
-  });
+  }
+};
+
+startServer();

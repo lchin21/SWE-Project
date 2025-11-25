@@ -18,13 +18,25 @@ export default (sequelize, DataTypes) => {
         mealID: {
             type: DataTypes.INTEGER,
             allowNull: false
+        },
+        mealType: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            validate: {
+                isIn: [["Breakfast", "Lunch", "Dinner", "Snack"]]
+            }
         }
     })
 
     PlannedMeals.associate = (models) => {
-        PlannedMeals.hasOne(models.Meals, {
-            foreignKey: "mealID",
-            as: "meal"
+        PlannedMeals.belongsTo(models.Meals, {
+            foreignKey: {
+                name: "mealID",
+                allowNull: false,
+            },
+            as: "meal",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         })
     }
 

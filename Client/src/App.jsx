@@ -5,9 +5,9 @@ import { theme } from "./theme.js";
 import { AuthenticationForm } from "./AuthenticationForm";
 import HomePage from "./HomePage";
 import Meals from "./MealsPage";
-import Recipes from "./RecipesPage";
-import History from "./HistoryPage";
+import Plans from "./PlansPage";
 import AppShellLayout from "./AppShellLayout";
+import RequireAuth from "./RequireAuth";
 
 export default function App() {
   return (
@@ -16,13 +16,14 @@ export default function App() {
         <Routes>
           <Route path="/" element={<AuthenticationForm />} />
 
-          <Route path="/home" element={<AppShellLayout />}>
-          <Route element={<HomePage />}>
-            <Route index element={<></>} />
-            <Route path="meals" element={<Meals />} />
-            <Route path="recipes" element={<Recipes />} />
-            <Route path="history" element={<History />} />
-          </Route>
+          <Route element={<RequireAuth />}>
+            <Route path="/home" element={<AppShellLayout />}>
+              <Route element={<HomePage />}>
+                <Route index element={<></>} />
+                <Route path="meals" element={<Meals />} />
+                <Route path="plans" element={<Plans />} />
+              </Route>
+            </Route>
           </Route>
         </Routes>
       </MantineProvider>
