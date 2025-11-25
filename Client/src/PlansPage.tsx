@@ -11,6 +11,7 @@ import {
   Stack,
   Text,
   Title,
+  Progress,
 } from "@mantine/core";
 import { createPlan, deletePlan, listMeals, listPlans } from "./apiClient";
 import { onAuthStateChanged } from "firebase/auth";
@@ -154,6 +155,20 @@ export default function PlansPage() {
   const hasMeals = mealOptions.length > 0;
   const hasAnyEntries = days.some((day) => mealSlots.some((slot) => Boolean(weeklyPlan[day][slot])));
 
+  const getNutritionForDay = (day: Day) => {
+    let calories = 0, protein = 0, carbs = 0, fat = 0;
+    mealSlots.forEach((slot) => {
+      const entry = weeklyPlan[day][slot];
+      if (entry?.meal) {
+        calories += entry.meal.calories || 0;
+        protein += entry.meal.protein || 0;
+        carbs += entry.meal.carbs || 0;
+        fat += entry.meal.fat || 0;
+      }
+    });
+    return { calories, protein, carbs, fat };
+  };
+
   const handleClearAll = async () => {
     if (!hasAnyEntries) return;
     setClearingAll(true);
@@ -216,6 +231,7 @@ export default function PlansPage() {
           >
             {days.map((day) => {
               const dayHasEntries = mealSlots.some((slot) => weeklyPlan[day][slot]);
+              const nutrition = getNutritionForDay(day);
               return (
                 <Card
                   withBorder
@@ -238,6 +254,30 @@ export default function PlansPage() {
                     </Button>
                   </Group>
 
+                  <Stack gap="xs" mb="md" pb="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
+                    <Text size="xs" fw={500} c="dimmed">Daily Nutrition</Text>
+                    <Group justify="space-between" gap="xs">
+                      <Text size="xs">
+                        <Text span fw={500}>{nutrition.calories}</Text>
+                        <Text span c="dimmed"> kcal</Text>
+                      </Text>
+                      <Text size="xs">
+                        <Text span fw={500}>{nutrition.protein}</Text>
+                        <Text span c="dimmed">g protein</Text>
+                      </Text>
+                    </Group>
+                    <Group justify="space-between" gap="xs">
+                      <Text size="xs">
+                        <Text span fw={500}>{nutrition.carbs}</Text>
+                        <Text span c="dimmed">g carbs</Text>
+                      </Text>
+                      <Text size="xs">
+                        <Text span fw={500}>{nutrition.fat}</Text>
+                        <Text span c="dimmed">g fat</Text>
+                      </Text>
+                    </Group>
+                  </Stack>
+
                   <Stack gap="xs">
                     {mealSlots.map((slot) => {
                       const entry = weeklyPlan[day][slot];
@@ -250,6 +290,8 @@ export default function PlansPage() {
                               fullWidth
                               radius="md"
                               disabled={savingSlot === slotKey}
+                              h="auto"
+                              justify="flex-start"
                               styles={(theme) => ({
                                 root: {
                                   justifyContent: "flex-start",
@@ -268,18 +310,23 @@ export default function PlansPage() {
                                   boxShadow: "none",
                                   color: theme.black,
                                   overflow: "visible",
+                                  whiteSpace: "normal",
+                                },
+                                inner: {
+                                  overflow: "visible",
+                                  justifyContent: "flex-start",
                                 },
                               })}
                             >
-                              <Stack gap={4} align="flex-start">
+                              <Stack gap={4} align="flex-start" w="100%">
                                 <Text size="xs" c="dimmed">
                                   {slot}
                                 </Text>
-                                <Group gap="xs" wrap="nowrap">
+                                <Group gap="xs" wrap="nowrap" w="100%" justify="flex-start">
                                   {savingSlot === slotKey ? (
                                     <Loader size="xs" />
                                   ) : (
-                                    <Text fw={500}>
+                                    <Text fw={500} style={{ overflow: "visible", wordBreak: "break-word", textAlign: "left" }}>
                                       {entry?.meal?.name || "Select meal"}
                                     </Text>
                                   )}

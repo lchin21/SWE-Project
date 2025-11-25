@@ -15,6 +15,9 @@ import {
   Modal,
   NumberInput,
   Loader,
+  SegmentedControl,
+  ActionIcon,
+  Tooltip,
 } from "@mantine/core";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { listPlans, getGoals, setGoals as createGoals, updateGoals } from "./apiClient";
@@ -83,8 +86,11 @@ export default function HomePage() {
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(buildEmptyPlan());
   const [planLoading, setPlanLoading] = useState(true);
 
-  // Current day of the week (fixed, not user-selectable)
+  // Current day of the week (today's actual day)
   const currentDay = getCurrentDay();
+  
+  // Selected day for viewing (user-selectable)
+  const [selectedDay, setSelectedDay] = useState<Day>(currentDay);
 
   // Goals state + tracking whether goals exist in DB
   const [goals, setGoalsState] = useState({ calories: 2200, protein: 160, carbs: 200, fat: 70 });
@@ -176,9 +182,9 @@ export default function HomePage() {
     }
   }, [authReady, active, loadPlans]);
 
-  // Derive "today" totals from current day's plan
+  // Derive "today" totals from selected day's plan
   const today = useMemo(() => {
-    const slots = weeklyPlan[currentDay];
+    const slots = weeklyPlan[selectedDay];
     let calories = 0, protein = 0, carbs = 0, fat = 0;
     mealSlots.forEach((slot) => {
       const entry = slots[slot];
@@ -190,7 +196,7 @@ export default function HomePage() {
       }
     });
     return { calories, protein, carbs, fat };
-  }, [weeklyPlan, currentDay]);
+  }, [weeklyPlan, selectedDay]);
 
   const pct = {
     calories: goals.calories > 0 ? Math.min(100, Math.round((today.calories / goals.calories) * 100)) : 0,
@@ -348,13 +354,34 @@ export default function HomePage() {
 
               <Grid.Col span={{ base: 12, sm: 6 }}>
                 <Card withBorder padding="md" radius="md">
-                  <Title order={5} mb="xs">Today ({getCurrentDay()})</Title>
+                  <Stack gap="sm">
+                    <Title order={5}>Select Day</Title>
+                    <Group gap={6} justify="center" wrap="wrap">
+                      {days.map((day) => (
+                        <Tooltip key={day} label={day} offset={-5}>
+                          <Button
+                            variant={selectedDay === day ? "filled" : "light"}
+                            size="xs"
+                            onClick={() => setSelectedDay(day)}
+                            px={8}
+                            py={4}
+                            style={{ minWidth: '40px', whiteSpace: 'nowrap' }}
+                          >
+                            {day.slice(0, 3)}
+                          </Button>
+                        </Tooltip>
+                      ))}
+                    </Group>
+                    <Text size="sm" c="dimmed" ta="center">
+                      Viewing meal data for {selectedDay}
+                    </Text>
+                  </Stack>
                   {planLoading ? (
-                    <Group justify="center" py="sm">
+                    <Group justify="center" py="sm" mt="md">
                       <Loader size="sm" />
                     </Group>
                   ) : (
-                    <Stack gap="sm">
+                    <Stack gap="sm" mt="md">
                       <Group justify="space-between">
                         <Text>Calories</Text>
                         <Group gap="xs">
