@@ -53,8 +53,8 @@ export function AuthenticationForm(props: PaperProps) {
 
   const loginEmail = async (email: string, password: string): Promise<void> => {
     try {
-      await signInUsernamePassword(email, password);
-      navigate("/home");
+      const token = await signInUsernamePassword(email, password);
+      if (token) navigate("/home");
     } catch (err: any) {
       console.error("Login error:", err?.message || err);
     }
@@ -62,10 +62,10 @@ export function AuthenticationForm(props: PaperProps) {
 
   const onRegister = async (email: string, password: string): Promise<void> => {
     try {
-      await createNewUser(email, password);
-      navigate("/home");
+      const token = await createNewUser(email, password);
+      if (token) navigate("/home");
     } catch (err: any) {
-      console.error("Login error:", err?.message || err);
+      console.error("Register error:", err?.message || err);
     }
   };
 

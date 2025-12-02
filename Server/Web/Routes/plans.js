@@ -2,8 +2,7 @@ import {authenticateFirebaseToken, getUserIDFromFirebaseUID} from "../Validators
 import express from "express"
 import db from "../../Database/models/index.js"
 import {validate} from "../Validators/validate.js";
-import {mealIdSchema} from "../Validators/mealsValidators.js";
-import {planSchema} from "../Validators/plansValidator.js";
+import {planSchema, planIdSchema} from "../Validators/plansValidator.js";
 
 const router = express.Router()
 
@@ -30,14 +29,31 @@ router.post("/",
                 });
             }
 
-            const newPlannedMeal = await PlannedMeals.create({
-                userID: userID,
-                day: req.body.day,
-                mealID: req.body.mealID
+            const {day, mealID, mealType} = req.body;
+
+            const existing = await PlannedMeals.findOne({
+                where: {userID, day, mealType}
             });
 
-            return res.status(200).json({
-                id: newPlannedMeal.ID
+            if (existing) {
+                existing.mealID = mealID;
+                await existing.save();
+                return res.status(200).json({
+                    id: existing.ID,
+                    updated: true
+                });
+            }
+
+            const newPlannedMeal = await PlannedMeals.create({
+                userID,
+                day,
+                mealID,
+                mealType
+            });
+
+            return res.status(201).json({
+                id: newPlannedMeal.ID,
+                updated: false
             });
         } catch (e) {
             console.log(e);
@@ -56,6 +72,7 @@ router.get("/",
             const userID = req.userID;
 
             const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            const slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
             const weeklyMeals = {};
 
             for (const day of days) {
@@ -63,13 +80,29 @@ router.get("/",
                     where: {userID, day},
                     include: [{model: Meals, as: "meal"}]
                 });
-                weeklyMeals[day] = meals.map(pm => ({
-                    name: pm.meal.name,
-                    calories: pm.meal.calories,
-                    protein: pm.meal.protein,
-                    fat: pm.meal.fat,
-                    carbs: pm.meal.carbs
-                }));
+
+                const dayPlan = slots.reduce((acc, slot) => {
+                    acc[slot] = null;
+                    return acc;
+                }, {});
+
+                meals.forEach(pm => {
+                    if (!pm.mealType) return;
+                    dayPlan[pm.mealType] = {
+                        id: pm.ID,
+                        mealID: pm.mealID,
+                        mealType: pm.mealType,
+                        meal: pm.meal ? {
+                            name: pm.meal.name,
+                            calories: pm.meal.calories,
+                            protein: pm.meal.protein,
+                            fat: pm.meal.fat,
+                            carbs: pm.meal.carbs
+                        } : null
+                    };
+                });
+
+                weeklyMeals[day] = dayPlan;
             }
 
             return res.status(200).json(weeklyMeals);
@@ -85,7 +118,7 @@ router.get("/",
 router.delete("/:id",
     authenticateFirebaseToken,
     getUserIDFromFirebaseUID,
-    validate(mealIdSchema, "params"),
+    validate(planIdSchema, "params"),
     async (req, res) => {
         try {
             const userID = req.userID;

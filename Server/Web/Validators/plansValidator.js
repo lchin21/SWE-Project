@@ -12,7 +12,14 @@ export const planSchema = Joi.object({
       "Sunday"
     )
     .required(),
-    mealID: Joi.number().min(0).required()
+    mealID: Joi.number().min(0).required(),
+    mealType: Joi.string()
+      .valid("Breakfast", "Lunch", "Dinner", "Snack")
+      .required()
+});
+
+export const planIdSchema = Joi.object({
+    id: Joi.number().min(0).required()
 });
 
 
