@@ -5,6 +5,7 @@ const base64EncodedServiceAccount = process.env.BASE_64_ENCODED_SERVICE_ACCOUNT;
 const decodedServiceAccount = Buffer.from(base64EncodedServiceAccount, 'base64').toString('utf-8');
 const credentials = JSON.parse(decodedServiceAccount);
 
+
 export const firebaseAdmin = initializeApp({
     credential: cert(credentials),
 });
@@ -17,3 +18,5 @@ export async function verifyIdToken(idToken) {
         throw error;
     }
 }
+
+

@@ -14,8 +14,11 @@ import {
 import { useForm } from "@mantine/form";
 import { upperFirst, useToggle } from "@mantine/hooks";
 import { GoogleButton } from "./GoogleButton";
+import { useNavigate } from "react-router-dom";
+import { signInUsernamePassword, createNewUser } from "./firebase/auth";
 
 export function AuthenticationForm(props: PaperProps) {
+  const navigate = useNavigate();
   const [type, toggle] = useToggle(['login', 'register']);
   const form = useForm({
     initialValues: {
@@ -31,89 +34,107 @@ export function AuthenticationForm(props: PaperProps) {
     },
   });
 
+  /*
   const loginEmail = async () => {
-    // CHANGE THIS TO ENV WHEN IMPLEMENTED
-    const res = await fetch("http://localhost:3000/click", { method: "POST" });
-    const data = await res.text();
-    // Then redirect to home page on success
+    try {
+
+      const res = await fetch("http://localhost:3000/click", { method: "POST" });
+      const data = await res.text();
+      if (res.ok) {
+        navigate("/home");
+        return;
+      }
+      console.error("Login failed:", data);
+    } catch (err: any) {
+      console.error("Login error:", err?.message || err);
+    }
+  };
+  */
+
+  const loginEmail = async (email: string, password: string): Promise<void> => {
+    try {
+      const token = await signInUsernamePassword(email, password);
+      if (token) navigate("/home");
+    } catch (err: any) {
+      console.error("Login error:", err?.message || err);
+    }
+  };
+
+  const onRegister = async (email: string, password: string): Promise<void> => {
+    try {
+      const token = await createNewUser(email, password);
+      if (token) navigate("/home");
+    } catch (err: any) {
+      console.error("Register error:", err?.message || err);
+    }
   };
 
   return (
     <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          width: "100vw",
-          backgroundColor: "#404040ff"
-        }}
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        width: "100vw",
+        backgroundColor: "#404040ff"
+      }}
     >
-    <Paper radius="md" p="lg" withBorder {...props}>
-      <Text size="lg" fw={500}>
-        Welcome to MyMacroPlan, {type} with
-      </Text>
+      <Paper radius="md" p="lg" withBorder {...props}>
+        <Text size="lg" fw={500}>
+          Welcome to MyMacroPlan, {type} with
+        </Text>
 
-      <Group grow mb="md" mt="md">
-        <GoogleButton radius="xl">Google</GoogleButton>
-      </Group>
+        <Group grow mb="md" mt="md">
+          <GoogleButton radius="xl">Google</GoogleButton>
+        </Group>
 
-      <Divider label="Or continue with email" labelPosition="center" my="lg" />
+        <Divider label="Or continue with email" labelPosition="center" my="lg" />
 
-      <form onSubmit={form.onSubmit(() => {})}>
-        <Stack>
-          {type === 'register' && (
+        <form onSubmit={form.onSubmit(type == "login" ? () => loginEmail(form.values.email, form.values.password) : () => onRegister(form.values.email, form.values.password))}>
+          <Stack>
             <TextInput
-              label="Name"
-              placeholder="Your name"
-              value={form.values.name}
-              onChange={(event) => form.setFieldValue('name', event.currentTarget.value)}
+              required
+              label="Email"
+              placeholder="hello@gmail.com"
+              value={form.values.email}
+              onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
+              error={form.errors.email && 'Invalid email'}
               radius="md"
             />
-          )}
 
-          <TextInput
-            required
-            label="Email"
-            placeholder="hello@gmail.com"
-            value={form.values.email}
-            onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
-            error={form.errors.email && 'Invalid email'}
-            radius="md"
-          />
-
-          <PasswordInput
-            required
-            label="Password"
-            placeholder="Your password"
-            value={form.values.password}
-            onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
-            error={form.errors.password && 'Password should include at least 6 characters'}
-            radius="md"
-          />
-
-          {type === 'register' && (
-            <Checkbox
-              label="I accept terms and conditions"
-              checked={form.values.terms}
-              onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
+            <PasswordInput
+              required
+              label="Password"
+              placeholder="Your password"
+              value={form.values.password}
+              onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
+              error={form.errors.password && 'Password should include at least 6 characters'}
+              radius="md"
             />
-          )}
-        </Stack>
 
-        <Group justify="space-between" mt="xl">
-          <Anchor component="button" type="button" c="dimmed" onClick={() => toggle()} size="xs">
-            {type === 'register'
-              ? 'Already have an account? Login'
-              : "Don't have an account? Register"}
-          </Anchor>
+            {type === 'register' && (
+              <Checkbox
+                label="I accept terms and conditions"
+                checked={form.values.terms}
+                onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
+              />
+            )}
+          </Stack>
 
-          <Button onClick={loginEmail} type="submit" radius="xl">
-            {upperFirst(type)}
-          </Button>
-        </Group>
-      </form>
-    </Paper>
+          <Group justify="space-between" mt="xl">
+            <Anchor component="button" type="button" c="dimmed" onClick={() => toggle()} size="xs">
+              {type === 'register'
+                ? 'Already have an account? Login'
+                : "Don't have an account? Register"}
+            </Anchor>
+
+            <Button type="submit" radius="xl">
+              {upperFirst(type)}
+            </Button>
+          </Group>
+        </form>
+      </Paper>
     </div>
   );
 }
